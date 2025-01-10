@@ -1,4 +1,7 @@
 
-# notes
+# Go Hunt the Wumpus
 
- - code from: https://github.com/charmbracelet/bubbletea/discussions/818
+A small exercise to get used to the Bubble Tea library in Go. 
+
+Original code was based on a Bubble Tea code example at [github/charmbracelt](https://github.com/charmbracelet/bubbletea/discussions/818).
+
