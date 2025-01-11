@@ -1,13 +1,22 @@
 package main
 
 import (
+
+  // default stuff.
 	"fmt"
+	"os"
 	"math/rand"
 	"time"
-	"os"
-  _ "strconv" // for debug prints.
+
+  // for making a nice centred box.
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+
+  // for saving highscore.
+  "path/filepath"
+  "io/ioutil"
+  "strconv"
+  "strings"
 )
 
 var (
@@ -31,6 +40,9 @@ var (
     Bold(true).
     Foreground(lipgloss.Color("#000000")).
     Background(lipgloss.Color("#000000"))
+  // for highscore:
+  start time.Time
+  score int
 )
 
 type model struct {
@@ -122,7 +134,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
         left := max(m.cursor_x - 1, 0)
         if m.arr[m.cursor_y][left] == "w" {
           bot_msg += "You shoot the wumpus!"
-          game_over = true
+          setGameOver()
         }
       }
       case "L", "d": // shoot right.
@@ -135,7 +147,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
         right := min(m.cursor_x + 1, 4)
         if m.arr[m.cursor_y][right] == "w" {
           bot_msg += "You shoot the wumpus!"
-          game_over = true
+          setGameOver()
         }
       }
       case "K", "w": // shoot up.
@@ -148,7 +160,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
         up := max(m.cursor_y - 1, 0)
         if m.arr[up][m.cursor_x] == "w" {
           bot_msg += "You shoot the wumpus!"
-          game_over = true
+          setGameOver()
         }
       }
       case "J", "s": // shoot down.
@@ -161,7 +173,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
         down := min(m.cursor_y + 1, 4)
         if m.arr[down][m.cursor_x] == "w" {
           bot_msg += "You shoot the wumpus!"
-          game_over = true
+          setGameOver()
         }
       }
       case "h", "left": // move left.
@@ -249,6 +261,58 @@ func pack(in [5][5]string, m model) string {
   return s
 }
 
+func setGameOver() {
+  game_over = true
+	elapsed := time.Since(start)
+  score = int(elapsed.Seconds())
+}
+
+func handleScore(score int, you_won bool) {
+  if ! you_won {
+    fmt.Println("GAME OVER")
+    return
+  }
+  fmt.Printf("It took you %d seconds.\n", score)
+  leastSecondsSoFar := getHighScore() // returns -1 on error, so there will not be a real score which is faster.
+  if score < leastSecondsSoFar {
+    fmt.Println("NEW HIGHSCORE!")
+    setHighScore(score)
+  }
+}
+
+func setHighScore(score int) {
+  homeDir, _ := os.UserHomeDir()
+  dir := filepath.Join(homeDir, ".go-hunt-the-wumpus")
+  if err := os.MkdirAll(dir, 0700); err != nil {
+    fmt.Println("Error: Failed to make highscore directory.")
+    return
+  }
+  highscoreFile := filepath.Join(dir, "highscore.txt")
+  err := ioutil.WriteFile(highscoreFile, []byte(strconv.Itoa(score)), 0644)
+  if err != nil {
+    fmt.Println("Error: Failed to write highscore file.")
+    return
+  }
+}
+
+func getHighScore() int {
+  homeDir, _ := os.UserHomeDir()
+  highscoreFile := filepath.Join(homeDir, ".go-hunt-the-wumpus", "highscore.txt")
+  data, err := ioutil.ReadFile(highscoreFile)
+  if err != nil {
+    fmt.Println("Failed to read highscore file.")
+    setHighScore(9999)
+    return 9999
+  }
+  scoreString := strings.TrimSpace(string(data))
+  if scoreString == "" {
+    fmt.Println("Error: Failed to read highscore data.")
+    return -1
+  }
+  score, _ := strconv.Atoi(scoreString)
+  return score
+}
+
 func main() {
   //////////////////////////////////////////////////////////
   rand.Seed(time.Now().UnixNano()) // Seed the random number generator to get different results each time.
@@ -293,10 +357,14 @@ func main() {
       m.arr[I%5][I/5] = "N" // Uncover the start location.
     }
   }
-  //////////////////////////////////////////////////////////
 
-	if _, err := tea.NewProgram(m, tea.WithAltScreen()).Run(); err != nil {
-		fmt.Println("Error running program:", err)
-		os.Exit(1)
-	}
+  //////////////////////////////////////////////////////////
+	start = time.Now()
+  if _, err := tea.NewProgram(m, tea.WithAltScreen()).Run(); err != nil {
+    fmt.Println("Error running program:", err)
+    os.Exit(1)
+  }
+  player_won := !you_died && game_over
+  handleScore(score, player_won)
+  //////////////////////////////////////////////////////////
 }
