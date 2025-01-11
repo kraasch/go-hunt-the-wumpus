@@ -9,4 +9,7 @@ test:
 build:
 	rm -rf ./build/
 	mkdir -p ./build/
-	go build -o ./build/go-hunt-the-wumpus ./cmd/ 
+	go build \
+		-o ./build/go-hunt-the-wumpus \
+		-gcflags -m=2 \
+		./cmd/ 
