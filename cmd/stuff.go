@@ -254,7 +254,11 @@ func pack(in [5][5]string, m model) string {
       } else if in[i][j] == "X" { // empty tile.
         // Render foggy tile.
         // cursor := fogStyle.Render(character) // NOTE: for debugging.
-        cursor := noFogStyle.Render(" ")
+        fogCharacter := "?"
+        if vision {
+          fogCharacter = " "
+        }
+        cursor := noFogStyle.Render(fogCharacter)
         s += fmt.Sprintf("%s ", cursor)
       } else { // some object or monster.
         // Render object.
