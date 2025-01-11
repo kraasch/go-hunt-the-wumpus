@@ -264,7 +264,7 @@ func pack(in [5][5]string, m model) string {
         // Render object.
         // s += fmt.Sprintf("%s ", character) // NOTE: for debugging.
         {} // golang's no-op.
-        objectCharacter := " "
+        objectCharacter := "?"
         if vision {
           objectCharacter = "?"
         }
