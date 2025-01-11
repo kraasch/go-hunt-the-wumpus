@@ -17,6 +17,17 @@ import (
   "io/ioutil"
   "strconv"
   "strings"
+
+  // for vision flag.
+  "flag"
+)
+
+const (
+  // TODO: use them later.
+  hunter      = "\U0001F916" // robot face    = 🤖.
+  monster     = "\U0001F47E" // monster emoji = 👾.
+  cloud       = "\U0001F32B" // cloud emoji   = 🌫️.
+  whiteKnight = "\U0000260F" // white knight  = ♞.
 )
 
 var (
@@ -36,13 +47,12 @@ var (
     Bold(true).
     Foreground(lipgloss.Color("#FFFFFF")).
     Background(lipgloss.Color("#FFFFFF"))
-  noFogStyle = lipgloss.NewStyle().
-    Bold(true).
-    Foreground(lipgloss.Color("#000000")).
-    Background(lipgloss.Color("#000000"))
+  noFogStyle = lipgloss.NewStyle().Bold(true) // leave bg and fg as default, thus white/black/transparent or whatever the terminal emulator is set to.
   // for highscore:
   start time.Time
   score int
+  // vision flag:
+  vision bool
 )
 
 type model struct {
@@ -234,23 +244,27 @@ func pack(in [5][5]string, m model) string {
       if m.cursor_x == j && m.cursor_y == i {
         // Render the hunter.
         // cursor := cursorStyle.Render(character) // NOTE: for debugging.
-        cursor := cursorStyle.Render(" ")
+        cursor := cursorStyle.Render("H")
         s += fmt.Sprintf("%s ", cursor)
       } else if in[i][j] == "N" {
         // Render empty tile.
         // cursor := noFogStyle.Render(character) // NOTE: for debugging.
         cursor := noFogStyle.Render(" ")
         s += fmt.Sprintf("%s ", cursor)
-      } else if in[i][j] == "X" {
+      } else if in[i][j] == "X" { // empty tile.
         // Render foggy tile.
         // cursor := fogStyle.Render(character) // NOTE: for debugging.
-        cursor := fogStyle.Render(" ")
+        cursor := noFogStyle.Render(" ")
         s += fmt.Sprintf("%s ", cursor)
-      } else {
+      } else { // some object or monster.
         // Render object.
         // s += fmt.Sprintf("%s ", character) // NOTE: for debugging.
         {} // golang's no-op.
-        cursor := fogStyle.Render(" ")
+        objectCharacter := " "
+        if vision {
+          objectCharacter = "?"
+        }
+        cursor := noFogStyle.Render(objectCharacter)
         s += fmt.Sprintf("%s ", cursor)
       }
     }
@@ -357,14 +371,17 @@ func main() {
       m.arr[I%5][I/5] = "N" // Uncover the start location.
     }
   }
-
-  //////////////////////////////////////////////////////////
+  //////////////////////////////
+  // have a vision flag.
+	flag.BoolVar(&vision, "vision", false, "Enable vision")
+	flag.Parse()
+  //////////////////////////////
 	start = time.Now()
   if _, err := tea.NewProgram(m, tea.WithAltScreen()).Run(); err != nil {
     fmt.Println("Error running program:", err)
     os.Exit(1)
   }
-  player_won := !you_died && game_over
+  player_won := !you_died && game_over && !vision
   handleScore(score, player_won)
   //////////////////////////////////////////////////////////
 }
