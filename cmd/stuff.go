@@ -77,7 +77,12 @@ func max(a, b int) int {
   return b
 }
 
-func (m model) Init() tea.Cmd { return nil }
+func (m model) Init() tea.Cmd {
+  return func() tea.Msg {
+    update_positional_messages(&m)
+    return nil
+  }
+}
 
 func update_positional_messages(m *model) {
   bot_msg = ""
