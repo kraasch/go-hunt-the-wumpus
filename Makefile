@@ -1,7 +1,7 @@
 
 run:
 	# rm -rf ~/.go-hunt-the-wumpus/
-	go run ./cmd/stuff.go
+	go run ./cmd/wumpus.go
 
 test:
 	go test ./...
