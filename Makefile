@@ -6,6 +6,10 @@ run:
 test:
 	go test ./...
 
+test_coverage:
+	go test ./... -coverprofile=cover.temp
+	go tool cover -html=cover.temp
+
 .PHONY: build
 build:
 	rm -rf ./build/
