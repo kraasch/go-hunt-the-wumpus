@@ -8,6 +8,7 @@ test:
 
 build_and_install:
 	rm -f ~/.local/bin/wumpus
+	# builds a binary without dependencies.
 	CGO_ENABLED=0 go build -a -tags netgo,osusergo -ldflags "-extldflags '-static' -s -w" -o ~/.local/bin/wumpus ./cmd
 
 test_coverage:
@@ -18,7 +19,5 @@ test_coverage:
 build:
 	rm -rf ./build/
 	mkdir -p ./build/
-	go build \
-		-o ./build/go-hunt-the-wumpus \
-		-gcflags -m=2 \
-		./cmd/ 
+	# builds a binary with dependencies.
+	go build -o ./build/go-hunt-the-wumpus -gcflags -m=2 ./cmd/ 
