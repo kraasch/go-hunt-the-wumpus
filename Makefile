@@ -4,7 +4,11 @@ run:
 	go run ./cmd/wumpus.go
 
 test:
-	go test ./...
+	go test ./build/
+
+build_and_install:
+	rm -f ~/.local/bin/wumpus
+	CGO_ENABLED=0 go build -a -tags netgo,osusergo -ldflags "-extldflags '-static' -s -w" -o ~/.local/bin/wumpus ./cmd
 
 test_coverage:
 	go test ./... -coverprofile=cover.temp
