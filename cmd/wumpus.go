@@ -22,6 +22,11 @@ import (
   "flag"
 )
 
+// MUST BE SET by go buid -ldflags "-X main.version=SEMVER-XYZ".
+//lint:ignore U1000 Ignore unused to put version into binary for later debugging.
+var version string // do not remove or modify.
+
+
 const (
   // TODO: use them later.
   hunter      = "\U0001F916" // robot face    = 🤖.
