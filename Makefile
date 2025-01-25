@@ -2,6 +2,10 @@
 VERSION=$(shell git describe --tags --long --dirty 2>/dev/null)
 BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
 
+ifeq ($(VERSION),)
+	VERSION = UNKNOWN
+endif
+
 run:
 	# rm -rf ~/.go-hunt-the-wumpus/
 	go run ./cmd/wumpus.go
@@ -9,6 +13,14 @@ run:
 info:
 	@echo version: $(VERSION)
 	@echo branch:  $(BRANCH)
+
+.PHONY: lint
+lint:
+	golangci-lint run
+
+.PHONY: committed
+committed:
+	@git diff --exit-code >/dev/null || (echo " ** COMMIT YOUR CHANGES FIRST **"; exit 1)
 
 test:
 	go test ./build/
@@ -37,7 +49,7 @@ test_coverage:
 	go tool cover -html=cover.temp
 
 .PHONY: build
-build:
+build: committed lint
 	rm -rf ./build/
 	mkdir -p ./build/
 	# builds a binary with dependencies.
